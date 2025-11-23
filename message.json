@@ -1,0 +1,39 @@
+{
+  "object": "whatsapp_business_account",
+  "entry": [
+    {
+      "id": "2635670933432691",
+      "changes": [
+        {
+          "value": {
+            "messaging_product": "whatsapp",
+            "metadata": {
+              "display_phone_number": "15551394316",
+              "phone_number_id": "899703906555896"
+            },
+            "contacts": [
+              {
+                "profile": {
+                  "name": "Harshit Thakkar"
+                },
+                "wa_id": "919718326464"
+              }
+            ],
+            "messages": [
+              {
+                "from": "919718326464",
+                "id": "wamid.HBgMOTE5NzE4MzI2NDY0FQIAEhggQUMxQjQxMDBEMEZDMTYzMUU0OTMyOEY3REUyMTA3MjgA",
+                "timestamp": "1763798590",
+                "text": {
+                  "body": "Hello"
+                },
+                "type": "text"
+              }
+            ]
+          },
+          "field": "messages"
+        }
+      ]
+    }
+  ]
+}

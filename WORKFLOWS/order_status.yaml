@@ -1,0 +1,34 @@
+order_status:
+  entry: ask_order_id
+  states:
+    ask_order_id:
+        type: ask
+        message: "Please share your order number."
+        expects: "order_id"
+        next: validate_order_id
+    validate_order_id:
+      type: action
+      action: "validate_order_id"
+      on_valid: fetch_order_status
+      on_invalid: ask_order_id_or_other
+    ask_order_id_or_other:
+      type: ask_buttons
+      message: "That order ID seems incorrect. Would you like to try again or go back to main menu?"
+      buttons:
+        try_again: ask_order_id
+        back: show_main_menu
+      next_map:
+        try_again: ask_order_id
+        back: show_main_menu
+    fetch_order_status:
+      type: action
+      action: "fetch_status_from_shopify"
+      next: show_status
+    show_status:
+      type: reply
+      template: "Your order {{order_id}} is currently: {{order_status}}"
+      end: true
+    show_main_menu:
+      type: reply
+      template: "{{main_menu_message}}"
+      end: true

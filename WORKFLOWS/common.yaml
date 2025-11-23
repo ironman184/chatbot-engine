@@ -1,0 +1,21 @@
+common:
+  states:
+    rule_check:
+      type: action
+      action: "check_rules"
+      on_rule_match: move_to_intent_flow
+      on_rule_not_match: llm_classify
+    llm_classify:
+      type: action
+      action: "llm_detect_intent"
+      on_high_confidence: move_to_intent_flow
+      on_low_confidence: llm_fallback
+    llm_fallback:
+      type: reply
+      template: "{{tone_response}}"
+      next: show_main_menu
+    show_main_menu:
+      type: reply
+      template: "{{main_menu_message}}"
+      end: true  
+  
