@@ -15,7 +15,8 @@ def send_message_to_user(sessionId, message):
                 "body": message
             }
         }
-        ACCESS_TOKEN = "EAAUkugjRmKkBQOF6yT8elC4gKpFbMbL8oS1U9rqL9ZBuRxRBDyPDKFrO8ZCbrlSe5fZCIyLmczH30JpzYnptl0ai3OnKQQFjILyeQGNBMHEuAPhWmgFHszf3iCZAWMRneYqOJuHreAiszkt4TZBW6yhm6GpeoYVpCvH2XA424ShyxtkMkdoExRrpnlZBAVEoFjJVMRlHML45BOCuf8KsNVV8LDZCrxhkItFFrjuZAjZAAvZBgYugOZC7U2IlZCVqTBMRrcECu6qFvGS7vQKh3oZArelOA"
+        # Replace with your actual access token
+        ACCESS_TOKEN = ""
         headers = {
             "Content-type": "application/json",
             "Authorization": f"Bearer {ACCESS_TOKEN}",
