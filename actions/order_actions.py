@@ -19,7 +19,7 @@ def fetch_order_details(user_message: str, sessionId: str, SESSION: dict):
         order_id = SESSION[sessionId]["data"]["order_id"]
     else:
         order_id = user_message.strip()    
-    client = ShopifyGraphQLClient("https://wave-wrist.myshopify.com", "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")
+    client = ShopifyGraphQLClient("https://wave-wrist.myshopify.com", "")
     sessionDetails = SESSION.get(sessionId, {})
     
     try:
