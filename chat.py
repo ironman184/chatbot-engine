@@ -1,12 +1,17 @@
+import asyncio
 from fastapi import FastAPI, Request, Response, HTTPException
 from datetime import datetime
-import requests
 import json
+
+from fastapi.responses import JSONResponse
+
+from driver import processMessage
+from load_actions import load_all_actions
+
 app = FastAPI()
-import logging
-import os
 
-
+# Load all registered actions at startup
+load_all_actions()
 
 SESSIONS = {}
 VERIFY_TOKEN="1234567"
@@ -22,35 +27,6 @@ async def verify_webhook(request: Request):
     else:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-def send_message(data):
-    print('sending message...', data, os.getenv('ACCESS_TOKEN'))
-    headers = {
-        "Content-type": "application/json",
-        "Authorization": f"Bearer {os.getenv('ACCESS_TOKEN')}",
-    }
-
-    url = f"https://graph.facebook.com/v22.0/899703906555896/messages"
-
-    try:
-        response = requests.post(
-            url, data=data, headers=headers
-        )  # 10 seconds timeout as an example
-        response.raise_for_status()  # Raises an HTTPError if the HTTP request returned an unsuccessful status code
-    except requests.Timeout:
-        logging.error("Timeout occurred while sending message")
-        return {"status": "error", "message": "Request timed out"}, 408
-        # return jsonify({"status": "error", "message": "Request timed out"}), 408
-    except (
-        requests.RequestException
-    ) as e:  # This will catch any general request exception
-        logging.error(f"Request failed due to: {e}")
-        return {"status": "error", "message": "Failed to send message"}, 500
-        # return jsonify({"status": "error", "message": "Failed to send message"}), 500
-    else:
-        # Process the response as normal
-        # log_http_response(response)
-        return response
-
 @app.post("/")
 async def root_function(request: Request):
     try:
@@ -59,7 +35,16 @@ async def root_function(request: Request):
 
         print(f"\n\nWebhook received {timestamp}\n")
         msg = json.dumps(body, indent=2)
-        # print("MESSAGE => ",msg)
+        if "statuses" in body["entry"][0]["changes"][0]["value"]:
+            # This is a delivery status callback, not a message
+            return JSONResponse(status_code=200, content={"status": "received"})
+        print("MESSAGE => ",msg)
+        
+         # Process message in background, DO NOT await blocking logic here
+        asyncio.create_task(processMessage(msg, SESSIONS))
+
+        # Acknowledge webhook quickly
+        return JSONResponse(status_code=200, content={"status": "received"})
     except Exception as e:
         print("Exception Raised",e)
 if __name__ == "__main__":

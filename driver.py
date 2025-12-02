@@ -1,49 +1,33 @@
 import json
-from typing import Optional
-from fastapi import FastAPI
-from session import get_session
-from session import save_session
-from session import clear_session
-from registry import register
-from registry import ACTIONS
+from helper import send_message_to_user
+from registry import register, ACTIONS
 import yaml
 
-sessionDetails = {
-    "intent": "order_status",
-    
-    "current_state": "validate_order_id",
-
-    "data": {
-        "order_id": "45310",
-        "last4_digits": None,
-        "otp_verified": False
-    },
-
-    "last_message_time": 1700000000,  # optional
-}
 
 async def processMessage(message, SESSIONS):
+    print(f"Session Dict {SESSIONS}")
     idUserMessage = fetchIdAndUserMessage(message)
     sessionId = "wa_" + idUserMessage[1]
     userMessage = idUserMessage[0]
-    sessionDetails = get_session(SESSIONS, sessionId)
-    if sessionDetails is None:
+    print(f"Processing message from session {sessionId}: {userMessage}")
+    print( sessionId not in SESSIONS)
+    if sessionId not in SESSIONS:
           with open("WORKFLOWS/common.yaml", "r") as f:
                 data = yaml.safe_load(f)
-          current_step = data.get("common").get("states").get("rule_check")      
-          handleFlow(current_step, sessionDetails, userMessage)
+          current_state = data.get("common").get("states").get("rule_check")      
+          handle_flow(current_state, sessionId, userMessage, SESSIONS)
     else:
-         intent = sessionDetails["intent"]
-         with open(intent + ".yaml", "r") as f:
-                data = yaml.safe_load(f)    
-         current_state = sessionDetails["current_state"]
-         state_details = data["states"][current_state]
-        
+         intent = SESSIONS.get(sessionId).get("intent")
+         with open(f"WORKFLOWS/{intent}.yaml", "r") as f:
+            data = yaml.safe_load(f)
+         current_state = data.get(intent).get("states").get(SESSIONS.get(sessionId).get("current_state"))
+         handle_flow(current_state, sessionId, userMessage, SESSIONS)
+         
     
 def fetchIdAndUserMessage(body):
     if isinstance(body, str):
         body = json.loads(body)
-    wa_id = body["entry"][0]["changes"][0]["value"]["contacts"][0]["wa_id"]
+    wa_id = body["entry"][0]["changes"][0]["value"]["messages"][0]["from"]
     message = body["entry"][0]["changes"][0]["value"]["messages"][0]
     if isinstance(message["text"], dict):
         message_body = message["text"]["body"]
@@ -52,15 +36,34 @@ def fetchIdAndUserMessage(body):
     print(message_body, wa_id )
     return [message_body, wa_id]
 
-def handleFlow(current_step, sessionDetails, userMessage):
-    while(current_step.get("type") == "action"):
-        current_step_type = current_step.get("type")
-        if current_step_type == "action":
-            print(f"Executing action")
-        elif current_step_type == "ask":
+def handle_flow(current_state, sessionId, userMessage, SESSIONS):
+        current_state_type = current_state.get("type")
+        while current_state_type == "action":
+            print(SESSIONS)
+            action_name = current_state.get("action")
+            action_function = ACTIONS.get(action_name)
+            if action_function:
+                action_function(userMessage, sessionId, SESSIONS)
+                sessionDetails = SESSIONS.get(sessionId, {})
+                next_state_name = sessionDetails.get("current_state")
+                intent = sessionDetails.get("intent")
+                with open(f"WORKFLOWS/{intent}.yaml", "r") as f:
+                    data = yaml.safe_load(f)
+                current_state = data.get(intent).get("states").get(next_state_name)
+                current_state_type = current_state.get("type")
+            else:
+                print(f"❌ Action '{action_name}' not found in registry.")
+                break 
+            
+
+        if current_state_type == "ask":
             print(f"Asking user")
-        elif current_step_type == "ask_buttons":
+            send_message_to_user(sessionId, current_state.get("message"))
+            current_state = current_state.get("next")
+            SESSIONS.get(sessionId)["current_state"] = current_state
+            # print(f"Message to user: {current_state.get("message")}")
+        elif current_state_type == "ask_buttons":
             print(f"Asking user with buttons")
-        elif current_step_type == "reply":
+        elif current_state_type == "reply":
             print("Replying to user")
 

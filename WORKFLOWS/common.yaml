@@ -1,4 +1,5 @@
 common:
+  start_at: rule_check
   states:
     rule_check:
       type: action
@@ -10,7 +11,7 @@ common:
       action: "llm_detect_intent"
       on_high_confidence: move_to_intent_flow
       on_low_confidence: llm_fallback
-    llm_fallback:
+    detect_intent_fallback:
       type: reply
       template: "{{tone_response}}"
       next: show_main_menu

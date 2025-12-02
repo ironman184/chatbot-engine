@@ -2,6 +2,7 @@ import json
 from driver import processMessage
 import asyncio
 from load_actions import load_all_actions
+from actions.order_actions import fetch_order_details
 
 SESSIONS = {}
 
@@ -12,7 +13,8 @@ def load_message(filename: str = "message_1.json"):
 		return json.load(fh)
 
 async def main():
-    message = load_message("message.json")
+    # fetch_order_details()
+    message = load_message("message_1.json")
     msg = json.dumps(message, indent=2)
     await processMessage(msg, SESSIONS)
 

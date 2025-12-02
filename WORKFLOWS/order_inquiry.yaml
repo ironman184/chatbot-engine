@@ -1,0 +1,45 @@
+order_inquiry:
+  start_at: order_id_extraction
+  states:
+    order_id_extraction:
+        type: action
+        action: "extract_order_id"
+        on_found: fetch_order_details
+        on_not_found: ask_order_id
+
+    ask_order_id:
+        type: ask
+        message: "Got it! Could you please share your order ID? You can find it in your order confirmation email or on our website. (For example: #1001, EN1001, or 1001-A)"
+        expects: "order_id"
+        next: fetch_order_details
+
+    fetch_order_details:
+      type: action
+      action: "fetch_order_details"
+      on_valid: verify_customer
+      on_invalid: ask_order_id_or_other   
+
+    verify_customer:
+      type: action
+      action: "verify_customer"
+      on_valid: response_generation
+      on_invalid: ask_order_id_or_other
+
+    ask_order_id_or_other:
+      type: ask_buttons
+      message: "Hmm, I couldn't find that order. 😔 No worries! Would you like to try again with a different order ID, or would you prefer to explore other options?"
+      buttons:
+        try_again: ask_order_id
+        back: show_main_menu
+      next_map:
+        try_again: ask_order_id
+        back: show_main_menu
+  
+    provide_order_update:
+      type: action
+      action: "generate_order_update"
+      end: true
+    show_main_menu:
+      type: reply
+      template: "{{main_menu_message}}"
+      end: true
