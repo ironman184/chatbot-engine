@@ -1,9 +1,8 @@
-import ollama
 from registry import register
 from shopify_client import ShopifyGraphQLClient
 from shopify_queries import GET_ORDER_DETAILS
 from prompts import extract_order_id_system_prompt, generate_order_update_system_prompt
-from helper import send_message_to_user
+from helper import llm_caller, send_message_to_user
 import json
 
 
@@ -19,7 +18,7 @@ def fetch_order_details(user_message: str, sessionId: str, SESSION: dict):
         order_id = SESSION[sessionId]["data"]["order_id"]
     else:
         order_id = user_message.strip()    
-    client = ShopifyGraphQLClient("https://wave-wrist.myshopify.com", "")
+    client = ShopifyGraphQLClient("https://wave-wrist.myshopify.com", "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")
     sessionDetails = SESSION.get(sessionId, {})
     
     try:
@@ -52,26 +51,8 @@ def fetch_order_details(user_message: str, sessionId: str, SESSION: dict):
 def extract_order_id(user_message: str, sessionId: str, SESSION: dict) -> None:
     print("Extracting order ID from user message...")
     try:
-        response = ollama.chat(
-            model='gemma2:2b',
-            messages=[
-                {
-                    'role': 'system',
-                    'content': extract_order_id_system_prompt
-                },
-                {
-                    'role': 'user',
-                    'content': user_message
-                }
-            ],
-            options={
-                'temperature': 0.2,  # Low temperature for deterministic output
-                'top_p': 0.9,
-                'top_k': 40,
-            },
-            format='json'  # Request JSON format output
-        )
-        llm_output = response['message']['content']
+        response = llm_caller("gemma2:2b", extract_order_id_system_prompt, user_message, 0.2, 0.9, 40)
+        llm_output = response["message"]["content"]
         classification = json.loads(llm_output)
         order_id = classification.get("order_name", None)
         sessionDetails = SESSION.get(sessionId, {})
@@ -114,26 +95,8 @@ def generate_order_update(user_message: str, sessionId: str, SESSION: dict)-> No
         User question:
         {user_message}"""
     try:
-        response = ollama.chat(
-            model='gemma2:2b',
-            messages=[
-                {
-                    'role': 'system',
-                    'content': generate_order_update_system_prompt
-                },
-                {
-                    'role': 'user',
-                    'content': user_prompt
-                }
-            ],
-            options={
-                'temperature': 0.1,  # Low temperature for deterministic output
-                'top_p': 0.8,
-                'top_k': 40,
-            },
-            format='json'  # Request JSON format output
-        )
-        llm_output = response['message']['content']
+        response = llm_caller("gemma2:2b", generate_order_update_system_prompt, user_prompt, 0.1, 0.8, 40)
+        llm_output = response["message"]["content"]
         classification = json.loads(llm_output)
         reply = classification.get("reply", "I'm sorry, I couldn't generate an update for your order.")
         SESSION.get(sessionId)["current_state"] = ""

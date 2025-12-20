@@ -1,5 +1,7 @@
 import logging
 import os
+import ollama
+import ollama
 import requests
 
 
@@ -15,8 +17,7 @@ def send_message_to_user(sessionId, message):
                 "body": message
             }
         }
-        # Replace with your actual access token
-        ACCESS_TOKEN = ""
+        ACCESS_TOKEN = "EAAUkugjRmKkBQMiNaAaFuPUA8jP8eylT3yaj1SAmRIJ4VO4u1Jot923pZAu9QFZAU95SA9nqWASfPUHOZBKNMUhibQ77Isy3IgZBP8ZCk4N1xIuyxYfcDsWyB5SXBCgHaRUxwZAbCaS1hVoUl8diIMU0QEAlCHCFlCbSnLP0Joi7v89iMZAr4gZAQE1qzAtNvM2ZCn0JCzVZCsZAwGAr3tk5mek0Amv54gscSw2gS8UGlWWPJcx0YZAhu0wxUDtA6CUa70CIZCetrFqDbZCEJ7Cht7ZCEKndCS1"
         headers = {
             "Content-type": "application/json",
             "Authorization": f"Bearer {ACCESS_TOKEN}",
@@ -49,4 +50,25 @@ def send_message_to_user(sessionId, message):
     except Exception as e:
         logging.error(f"Unexpected error: {str(e)}")
         return {"status": "error", "message": str(e)}, 500
+
+def llm_caller(model, system_prompt, user_prompt, temperature, top_p, top_k):
+    return ollama.chat(
+            model=model,
+            messages=[
+                {
+                    'role': 'system',
+                    'content': system_prompt
+                },
+                {
+                    'role': 'user',
+                    'content': user_prompt
+                }
+            ],
+            options={
+                'temperature': temperature,  # Low temperature for deterministic output
+                'top_p': top_p,
+                'top_k': top_k,
+            },
+            format='json'  # Request JSON format output
+        )
 

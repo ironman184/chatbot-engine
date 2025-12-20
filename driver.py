@@ -3,7 +3,6 @@ from helper import send_message_to_user
 from registry import register, ACTIONS
 import yaml
 
-
 async def processMessage(message, SESSIONS):
     print(f"Session Dict {SESSIONS}")
     idUserMessage = fetchIdAndUserMessage(message)

@@ -1,7 +1,7 @@
 import json
 import yaml
+from helper import llm_caller
 from prompts import detect_intent_system_prompt
-import ollama
 from registry import register
 
 @register
@@ -18,26 +18,8 @@ def check_rules(user_message: str, sessionId: str, SESSION: dict):
 def llm_detect_intent(user_message: str, sessionId: str, SESSION: dict) -> None:
     confidence_threshold = 0.7
     try:
-        response = ollama.chat(
-            model='gemma2:2b',
-            messages=[
-                {
-                    'role': 'system',
-                    'content': detect_intent_system_prompt
-                },
-                {
-                    'role': 'user',
-                    'content': user_message
-                }
-            ],
-            options={
-                'temperature': 0.2,  # Low temperature for deterministic output
-                'top_p': 0.9,
-                'top_k': 40,
-            },
-            format='json'  # Request JSON format output
-        )
-        llm_output = response['message']['content']
+        response = llm_caller("gemma2:2b", detect_intent_system_prompt, user_message, 0.2, 0.9, 40)
+        llm_output = response["message"]["content"]
         classification = json.loads(llm_output)
         if 'category' not in classification or 'intent' not in classification or 'confidence' not in classification:
             raise ValueError("Missing required fields in LLM response")

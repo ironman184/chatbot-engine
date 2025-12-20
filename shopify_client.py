@@ -8,7 +8,6 @@ import requests
 import json
 from typing import Dict, Any, Optional
 
-
 class ShopifyGraphQLClient:
     def __init__(self, shop_url: str, access_token: str):
         self.shop_url = shop_url.rstrip('/')
