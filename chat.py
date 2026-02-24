@@ -9,7 +9,7 @@ import os
 
 
 SESSIONS = {}
-VERIFY_TOKEN="1234567"
+VERIFY_TOKEN="123456"
 @app.get("/")
 async def verify_webhook(request: Request):
     mode = request.query_params.get("hub.mode")
